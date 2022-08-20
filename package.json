@@ -8,10 +8,10 @@
     "dev": "nodemon app.js"
   },
   "dependencies": {
+    "dotenv": "^16.0.1",
     "@slack/bolt": "^3.12.1"
   },
   "devDependencies": {
-    "dotenv": "^16.0.1",
     "nodemon": "^2.0.19"
   }
 }
