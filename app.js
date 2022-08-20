@@ -54,6 +54,30 @@ app.command('/knowledge', async ({ command, ack, say }) => {
   }
 })
 
+app.command('/update', async ({ command, ack, say }) => {
+  try {
+    await ack()
+    const data = command.text.split('|')
+    const newFAQ = {
+      keyword: data[0].trim(),
+      question: data[1].trim(),
+      answer: data[2].trim(),
+    }
+    // save data to database.json
+    fs.readFile('database.json', function (err, data) {
+      const json = JSON.parse(data)
+      json.data.push(newFAQ)
+      fs.writeFile('database.json', JSON.stringify(json), function (err) {
+        if (err) throw err
+        console.log('Successfully saved to database.json!')
+      })
+    })
+    say(`You've added a new FAQ with the keyword *${newFAQ.keyword}.*`)
+  } catch (error) {
+    console.log('err')
+    console.error(error)
+  }
+})
 ;(async () => {
   const port = 3000
   await app.start(process.env.PORT || port)
