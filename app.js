@@ -1,6 +1,3 @@
-const fs = require('fs')
-let raw = fs.readFileSync('database.json')
-let faqs = JSON.parse(raw)
 const { App } = require('@slack/bolt')
 require('dotenv').config()
 
@@ -11,71 +8,117 @@ const app = new App({
   appToken: process.env.APP_TOKEN,
 })
 
-app.command('/knowledge', async ({ command, ack, say }) => {
+app.event('message', async ({ event, logger, say }) => {
   try {
-    await ack()
-    let message = { blocks: [] }
-    faqs.data.map((faq) => {
-      message.blocks.push(
-        {
-          type: 'section',
-          text: {
-            type: 'mrkdwn',
-            text: '*Question*',
+    if (event.text.toLowerCase() === 'inha') {
+      const user = await app.client.users.info({ user: event.user })
+      say({
+        text: 'Slack',
+        blocks: [
+          {
+            type: 'header',
+            text: {
+              type: 'plain_text',
+              text: `${user.user.real_name} отгадал слово "inha"`,
+            },
           },
-        },
-        {
-          type: 'section',
-          text: {
-            type: 'mrkdwn',
-            text: faq.question,
+          {
+            type: 'actions',
+            elements: [
+              {
+                type: 'button',
+                text: {
+                  type: 'plain_text',
+                  text: 'Хочу быть ведущим!',
+                },
+              },
+            ],
           },
-        },
-        {
-          type: 'section',
-          text: {
-            type: 'mrkdwn',
-            text: '*Answer*',
-          },
-        },
-        {
-          type: 'section',
-          text: {
-            type: 'mrkdwn',
-            text: faq.answer,
-          },
-        }
-      )
-    })
-    say(message)
+        ],
+      })
+    }
   } catch (error) {
-    console.log('err')
-    console.error(error)
+    logger.error(error)
   }
 })
 
-app.command('/update', async ({ command, ack, say }) => {
+app.command('/start', async ({ command, ack, say, logger }) => {
   try {
+    const user = await app.client.users.info({ user: command.user_id })
     await ack()
-    const data = command.text.split('|')
-    const newFAQ = {
-      keyword: data[0].trim(),
-      question: data[1].trim(),
-      answer: data[2].trim(),
-    }
-    // save data to database.json
-    fs.readFile('database.json', function (err, data) {
-      const json = JSON.parse(data)
-      json.data.push(newFAQ)
-      fs.writeFile('database.json', JSON.stringify(json), function (err) {
-        if (err) throw err
-        console.log('Successfully saved to database.json!')
-      })
+    say({
+      text: 'Slack',
+      blocks: [
+        {
+          type: 'header',
+          text: {
+            type: 'plain_text',
+            text: `${user.user.real_name} - объясняет слово!`,
+          },
+        },
+        {
+          type: 'divider',
+        },
+        {
+          type: 'actions',
+          elements: [
+            {
+              type: 'button',
+              text: {
+                type: 'plain_text',
+                text: 'Посмотреть слово',
+              },
+              confirm: {
+                title: {
+                  type: 'plain_text',
+                  text: 'Слово',
+                },
+                text: {
+                  type: 'mrkdwn',
+                  text: 'INHA',
+                },
+                confirm: {
+                  type: 'plain_text',
+                  text: 'Окей',
+                },
+                deny: {
+                  type: 'plain_text',
+                  text: 'Закрыть',
+                },
+              },
+            },
+            {
+              type: 'button',
+              text: {
+                type: 'plain_text',
+                text: 'Новое слово',
+              },
+              style: 'primary',
+              confirm: {
+                title: {
+                  type: 'plain_text',
+                  text: 'Новое слово',
+                },
+                text: {
+                  type: 'mrkdwn',
+                  text: 'NEW INHA',
+                },
+                confirm: {
+                  type: 'plain_text',
+                  text: 'Окей',
+                },
+                deny: {
+                  type: 'plain_text',
+                  text: 'Закрыть',
+                },
+              },
+            },
+          ],
+        },
+      ],
     })
-    say(`You've added a new FAQ with the keyword *${newFAQ.keyword}.*`)
   } catch (error) {
-    console.log('err')
-    console.error(error)
+    logger.error(error)
   }
 })
 ;(async () => {
