@@ -17,7 +17,7 @@ const app = new App({
   const client = await mongodb
   const collection = await client.db('slack-app').collection('crocodile-game')
 
-  app.command('/describe', async ({ command, ack, say, logger }) => {
+  app.command('/start', async ({ command, ack, say, logger }) => {
     try {
       await axios
         .get('https://random-word-api.herokuapp.com/word')
@@ -40,14 +40,11 @@ const app = new App({
             text: 'Slack',
             blocks: [
               {
-                type: 'header',
+                type: 'section',
                 text: {
                   type: 'plain_text',
-                  text: `${user.user.real_name} - объясняет слово!`,
+                  text: `${user.user.real_name} explains the word`,
                 },
-              },
-              {
-                type: 'divider',
               },
             ],
           })
@@ -61,7 +58,7 @@ const app = new App({
                   type: 'section',
                   text: {
                     type: 'mrkdwn',
-                    text: `Слово :ghost: *${response.data[0]}*`,
+                    text: `Explain the word: *${response.data[0]}*`,
                   },
                 },
                 {
@@ -74,7 +71,7 @@ const app = new App({
                       type: 'button',
                       text: {
                         type: 'plain_text',
-                        text: 'Изменить слово!',
+                        text: 'Next word!',
                       },
                       value: 'refresh',
                       action_id: 'refresh',
@@ -93,6 +90,56 @@ const app = new App({
     }
   })
 
+  app.command('/rules', async ({ ack, say }) => {
+    await ack()
+    say({
+      text: 'Slack',
+      blocks: [
+        {
+          type: 'divider',
+        },
+        {
+          type: 'section',
+          text: {
+            type: 'plain_text',
+            text: 'Hey, this is Crocodile game',
+          },
+        },
+        {
+          type: 'section',
+          text: {
+            type: 'plain_text',
+            text: 'The rules are simple',
+          },
+        },
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: `Game host's task is to press the *"Make a word"* button and explain it without using cognate words. The first person to guess the word wins the round`,
+          },
+        },
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: 'Host can change the word by pressing *"Next word"* button',
+          },
+        },
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: 'Press `/start` button to start the game ',
+          },
+        },
+        {
+          type: 'divider',
+        },
+      ],
+    })
+  })
+
   app.event('message', async ({ event, logger, say }) => {
     const { word, master } = await collection.findOne({
       channel: event.channel,
@@ -104,10 +151,10 @@ const app = new App({
           text: 'Slack',
           blocks: [
             {
-              type: 'header',
+              type: 'section',
               text: {
                 type: 'plain_text',
-                text: `${user.user.real_name} отгадал слово "${word}"`,
+                text: `${user.user.real_name} guessed the word - "${word}"`,
               },
             },
             {
@@ -117,7 +164,7 @@ const app = new App({
                   type: 'button',
                   text: {
                     type: 'plain_text',
-                    text: 'Хочу быть ведущим!',
+                    text: 'Make a word',
                   },
                   value: 'admin',
                   action_id: 'admin',
@@ -155,14 +202,11 @@ const app = new App({
             text: 'Slack',
             blocks: [
               {
-                type: 'header',
+                type: 'section',
                 text: {
                   type: 'plain_text',
-                  text: `${user.user.real_name} - объясняет слово!`,
+                  text: `${user.user.real_name} explains the word`,
                 },
-              },
-              {
-                type: 'divider',
               },
             ],
           })
@@ -176,7 +220,7 @@ const app = new App({
                   type: 'section',
                   text: {
                     type: 'mrkdwn',
-                    text: `Слово :ghost: *${response.data[0]}*`,
+                    text: `Explain the word: *${response.data[0]}*`,
                   },
                 },
                 {
@@ -189,7 +233,7 @@ const app = new App({
                       type: 'button',
                       text: {
                         type: 'plain_text',
-                        text: 'Изменить слово!',
+                        text: 'Next word',
                       },
                       value: 'refresh',
                       action_id: 'refresh',
@@ -231,14 +275,11 @@ const app = new App({
             text: 'Slack',
             blocks: [
               {
-                type: 'header',
+                type: 'section',
                 text: {
                   type: 'plain_text',
-                  text: `${user.user.real_name} - объясняет слово!`,
+                  text: `${user.user.real_name} explains the new word`,
                 },
-              },
-              {
-                type: 'divider',
               },
             ],
           })
@@ -252,7 +293,7 @@ const app = new App({
                   type: 'section',
                   text: {
                     type: 'mrkdwn',
-                    text: `Слово :ghost: *${response.data[0]}*`,
+                    text: `Explain the new word: *${response.data[0]}*`,
                   },
                 },
                 {
@@ -265,7 +306,7 @@ const app = new App({
                       type: 'button',
                       text: {
                         type: 'plain_text',
-                        text: 'Изменить слово!',
+                        text: 'Next word',
                       },
                       value: 'refresh',
                       action_id: 'refresh',
